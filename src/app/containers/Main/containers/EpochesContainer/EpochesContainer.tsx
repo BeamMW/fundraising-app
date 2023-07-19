@@ -3,11 +3,7 @@ import { useRoutes } from 'react-router-dom';
 
 import { ROUTES_PATH } from '@app/shared/constants';
 import {
-  EpochesBase,
-  EpochsFuture,
-  EpochsPrevious,
-  ProposalPage,
-  StakedInfo
+  EpochesBase, EpochsFuture, EpochsPrevious, ProposalPage, StakedInfo,
 } from '@app/containers/Main/containers';
 
 const routes = [
@@ -35,7 +31,7 @@ const routes = [
     path: ROUTES_PATH.MAIN.STAKED_INFO,
     element: <StakedInfo />,
     exact: true,
-  }
+  },
 ];
 
 const EpochesContainer = () => {

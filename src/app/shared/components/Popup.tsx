@@ -77,7 +77,7 @@ const Popup: React.FC<PopupProps> = ({
   confirmButton,
   children,
   footerClass,
-  className
+  className,
 }) => (visible ? (
   <Backdrop onCancel={onCancel}>
     <ContainerStyled className={className}>

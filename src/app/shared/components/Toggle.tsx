@@ -45,7 +45,9 @@ const SliderStyled = styled.div<{ active: boolean }>`
   }
 `;
 
-const Toggle: React.FC<ToggleProps> = ({ id, className, value, onChange }) => (
+const Toggle: React.FC<ToggleProps> = ({
+  id, className, value, onChange,
+}) => (
   <ContainerStyled className={className} htmlFor={id}>
     <InputStyled id={id} type="checkbox" checked={value} onChange={onChange} />
     <TrackStyled />

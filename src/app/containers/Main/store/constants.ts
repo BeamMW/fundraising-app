@@ -1,2 +1,1 @@
-export enum AuthActionTypes {
-}
+export enum AuthActionTypes {}

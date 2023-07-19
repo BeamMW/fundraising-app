@@ -51,7 +51,7 @@ const PublicKeyPopup: React.FC<RemovePopupProps> = ({ visible, onCancel }) => {
 
   const handleCopy = async () => {
     await copyToClipboard(pKey);
-  }
+  };
 
   return (
     <Popup
@@ -64,13 +64,24 @@ const PublicKeyPopup: React.FC<RemovePopupProps> = ({ visible, onCancel }) => {
         </Button>
       )}
       confirmButton={(
-        <Button variant="regular" className={CopyButtonClass} pallete='green' icon={IconCopyBlue} onClick={handleConfirm}>
+        <Button
+          variant="regular"
+          className={CopyButtonClass}
+          pallete="green"
+          icon={IconCopyBlue}
+          onClick={handleConfirm}
+        >
           copy and close
         </Button>
       )}
       onCancel={onCancel}
     >
-      {pKey ? (<StyledContent>{pKey}<IconCopyWhite onClick={handleCopy} className={CopyIconClass}/></StyledContent>) : null}
+      {pKey ? (
+        <StyledContent>
+          {pKey}
+          <IconCopyWhite onClick={handleCopy} className={CopyIconClass} />
+        </StyledContent>
+      ) : null}
     </Popup>
   );
 };

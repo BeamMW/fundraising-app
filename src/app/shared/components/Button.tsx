@@ -48,7 +48,7 @@ const ButtonStyled = styled(BaseButtonStyled)`
 `;
 
 const GhostBorderedButtonStyled = styled(ButtonStyled)`
-  background-color: rgba(0, 246, 210, .1);
+  background-color: rgba(0, 246, 210, 0.1);
   color: ${({ pallete }) => `var(--color-${pallete})`};
   border: ${({ pallete }) => `1px solid var(--color-${pallete})`};
   max-width: 215px;

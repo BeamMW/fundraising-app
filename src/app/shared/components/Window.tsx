@@ -6,16 +6,19 @@ import { ROUTES } from '@app/shared/constants';
 import { IconBackWindow, IconAddProposal } from '@app/shared/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectAppParams, selectIsModerator, selectPopupsState } from '@app/containers/Main/store/selectors';
-import { NewProposalPopup, Button, DepositPopup, WithdrawPopup, PublicKeyPopup } from './';
 import { setPopupState } from '@app/containers/Main/store/actions';
 import { css } from '@linaria/core';
+import {
+  DepositPopup, NewProposalPopup, PublicKeyPopup, WithdrawPopup,
+} from '@app/shared/components/index';
+import Button from './Button';
 
 interface WindowProps {
   onPrevious?: React.MouseEventHandler | undefined;
 }
 
 const Container = styled.div<{ bgColor: string }>`
-  background-color: ${({ bgColor }) => Utils.isWeb() || Utils.isAndroid() ? bgColor : 'transparent'};
+  background-color: ${({ bgColor }) => (Utils.isWeb() || Utils.isAndroid() ? bgColor : 'transparent')};
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -39,7 +42,7 @@ const StyledTitle = styled.div`
       max-width: 230px !important;
       margin-bottom: 0 !important;
       margin-right: 30px !important;
-    }  
+    }
   }
 `;
 
@@ -73,15 +76,7 @@ const PkeyButtonClass = css`
   font-size: 16px !important;
 `;
 
-const NewButtonClass = css`
-  margin-bottom: 0 !important;
-  margin-right: 30px !important;
-`;
-
-const Window: React.FC<WindowProps> = ({
-  children,
-  onPrevious
-}) => {
+const Window: React.FC<WindowProps> = ({ children, onPrevious }) => {
   const navigate = useNavigate();
   const rootRef = useRef();
   const dispatch = useDispatch();
@@ -96,8 +91,8 @@ const Window: React.FC<WindowProps> = ({
   };
 
   const handlePkey = () => {
-    dispatch(setPopupState({type: 'pkey', state: !popupsState.pkey}));
-  }
+    dispatch(setPopupState({ type: 'pkey', state: !popupsState.pkey }));
+  };
 
   const handleNewProposal = () => {
     setIsNewProposalVisible(true);
@@ -106,47 +101,64 @@ const Window: React.FC<WindowProps> = ({
   const hideNewProposalPopup = () => {
     setIsNewProposalVisible(false);
   };
-  
+
   return (
     <>
       <Container bgColor={Utils.getStyles().background_main} ref={rootRef}>
         <StyledTitle>
           <TitleValue onClick={titleClicked}>Voting</TitleValue>
-          <span className='controls'>
-            { appParams.is_admin || isModerator ?
-              <Button className='new-button-class' variant='ghostBordered' pallete='green'
-              onClick={()=>handleNewProposal()}
-              icon={IconAddProposal}>
+          <span className="controls">
+            {appParams.is_admin || isModerator ? (
+              <Button
+                className="new-button-class"
+                variant="ghostBordered"
+                pallete="green"
+                onClick={() => handleNewProposal()}
+                icon={IconAddProposal}
+              >
                 create new proposal
-              </Button> : null
-            }
-            <Button className={PkeyButtonClass}
-              onClick={() => handlePkey()}
-              pallete='green' variant='link'>
-                Show my public key
+              </Button>
+            ) : null}
+            <Button className={PkeyButtonClass} onClick={() => handlePkey()} pallete="green" variant="link">
+              Show my public key
             </Button>
           </span>
         </StyledTitle>
-        { onPrevious ? (
-        <BackStyled>
-          <div className='control' onClick={onPrevious}>
-            <IconBackWindow/>
-            <span className='control-text'>back</span>
-          </div>
-        </BackStyled>) : null}
-        { children }
-        <NewProposalPopup visible={isNewProposalVisible} onCancel={()=>{hideNewProposalPopup()}}/>
+        {onPrevious ? (
+          <BackStyled>
+            <button type="button" className="control" onClick={onPrevious}>
+              <IconBackWindow />
+              <span className="control-text">back</span>
+            </button>
+          </BackStyled>
+        ) : null}
+        {children}
+        <NewProposalPopup
+          visible={isNewProposalVisible}
+          onCancel={() => {
+            hideNewProposalPopup();
+          }}
+        />
       </Container>
 
-      <DepositPopup visible={popupsState.deposit} onCancel={()=>{
-       dispatch(setPopupState({type: 'deposit', state: false}));
-      }}/>
-      <WithdrawPopup visible={popupsState.withdraw} onCancel={()=>{
-       dispatch(setPopupState({type: 'withdraw', state: false}));
-      }}/>
-      <PublicKeyPopup visible={popupsState.pkey} onCancel={()=>{
-       dispatch(setPopupState({type: 'pkey', state: false}));
-      }}/>
+      <DepositPopup
+        visible={popupsState.deposit}
+        onCancel={() => {
+          dispatch(setPopupState({ type: 'deposit', state: false }));
+        }}
+      />
+      <WithdrawPopup
+        visible={popupsState.withdraw}
+        onCancel={() => {
+          dispatch(setPopupState({ type: 'withdraw', state: false }));
+        }}
+      />
+      <PublicKeyPopup
+        visible={popupsState.pkey}
+        onCancel={() => {
+          dispatch(setPopupState({ type: 'pkey', state: false }));
+        }}
+      />
     </>
   );
 };

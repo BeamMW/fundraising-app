@@ -1,6 +1,5 @@
 import React from 'react';
 import { styled } from '@linaria/react';
-import { css } from '@linaria/core';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -11,6 +10,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   is_beamx?: boolean;
   from?: 'deposit' | 'withdraw';
 }
+
+const colorMap = {
+  deposit: 'var(--color-purple)',
+  withdraw: 'var(--color-blue)',
+  default: 'var(--color-white)',
+};
 
 const ContainerStyled = styled.div<InputProps>`
   position: relative;
@@ -29,7 +34,7 @@ const InputStyled = styled.input<InputProps>`
   color: white;
 
   &::placeholder {
-    color: ${({ from }) => (from === 'deposit' ? 'var(--color-purple)' : from === 'withdraw' ? 'var(--color-blue)' : 'var(--color-white)')};
+    color: ${({ from }) => colorMap[from] || colorMap.default};
     font-size: 14px;
     transform: translateX(1px);
   }
@@ -49,10 +54,10 @@ const InputGrayStyled = styled(InputStyled)`
   border-color: ${({ valid }) => (valid ? 'rgba(255,255,255,0.3)' : 'var(--color-red)')};
 `;
 
-const InputProposalStyled = styled(InputGrayStyled)<{ pallete: string, valid: boolean }>`
+const InputProposalStyled = styled(InputGrayStyled)<{ pallete: string; valid: boolean }>`
   font-size: 16px;
   font-weight: normal;
-  color: ${({ pallete, valid }) => valid ? `var(--color-${pallete})` : '#ff746b'};
+  color: ${({ pallete, valid }) => (valid ? `var(--color-${pallete})` : '#ff746b')};
   height: 45px;
   border: none;
   padding: 0 15px;
@@ -85,9 +90,12 @@ const StyledInput = styled.div<InputProps>`
 `;
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({
-    label, is_beamx = false,  valid = true, variant = 'regular', margin = 'none', pallete, className, ...rest
-  }, ref) => {
+  (
+    {
+      label, is_beamx = false, valid = true, variant = 'regular', margin = 'none', pallete, className, ...rest
+    },
+    ref,
+  ) => {
     const InputComponent = {
       regular: InputRegularStyled,
       gray: InputGrayStyled,
@@ -98,7 +106,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <ContainerStyled className={className} margin={margin}>
         <StyledInput valid={valid}>
           <InputComponent ref={ref} valid={valid} pallete={pallete} {...rest} />
-          {!!is_beamx && <span className='beamx-label'>BEAMX</span>}
+          {!!is_beamx && <span className="beamx-label">BEAMX</span>}
         </StyledInput>
         {!!label && <LabelStyled valid={valid}>{valid ? label : ''}</LabelStyled>}
       </ContainerStyled>

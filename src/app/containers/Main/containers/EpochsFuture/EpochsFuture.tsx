@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { styled } from '@linaria/react';
+import React from 'react';
+
 import { css } from '@linaria/core';
 
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Window, Button } from '@app/shared/components';
+import { useSelector } from 'react-redux';
+import { Window } from '@app/shared/components';
 import { EpochStatsSection, ProposalsList } from '@app/containers/Main/components';
-import { selectFutureProposals } from '../../store/selectors';
 import { PROPOSALS, ROUTES } from '@app/shared/constants';
+import { selectFutureProposals } from '../../store/selectors';
 
 const StatsSectionClass = css`
   margin-bottom: 40px;
@@ -15,7 +15,6 @@ const StatsSectionClass = css`
 
 const EpochsFuture: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const futureProposals = useSelector(selectFutureProposals());
 
   const handlePrevious: React.MouseEventHandler = () => {
@@ -25,10 +24,8 @@ const EpochsFuture: React.FC = () => {
   return (
     <>
       <Window onPrevious={handlePrevious}>
-        <EpochStatsSection
-          state='none'
-          className={StatsSectionClass}></EpochStatsSection>
-        <ProposalsList type={PROPOSALS.FUTURE} title='Future proposals' data={futureProposals.items}></ProposalsList>
+        <EpochStatsSection state="none" className={StatsSectionClass} />
+        <ProposalsList type={PROPOSALS.FUTURE} title="Future proposals" data={futureProposals.items} />
       </Window>
     </>
   );

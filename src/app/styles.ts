@@ -23,10 +23,10 @@ css`
 
       --color-disabled: #8da1ad;
 
-      --color-usdt-from: rgba(80, 175, 149, .3);
-      --color-eth-from: rgba(94, 123, 242, .3);
-      --color-wbtc-from: rgba(247, 147, 26, .3);
-      --color-dai-from: rgba(245, 172, 55, .3);
+      --color-usdt-from: rgba(80, 175, 149, 0.3);
+      --color-eth-from: rgba(94, 123, 242, 0.3);
+      --color-wbtc-from: rgba(247, 147, 26, 0.3);
+      --color-dai-from: rgba(245, 172, 55, 0.3);
     }
 
     @font-face {
@@ -109,13 +109,14 @@ css`
     body {
       font-size: 14px;
       color: white;
-    }    
+    }
 
     p {
       margin: 0;
     }
 
-    h1,h2 {
+    h1,
+    h2 {
       margin: 0;
     }
 
@@ -125,7 +126,9 @@ css`
       padding: 0;
     }
 
-    tr, th, table :not(.description) {
+    tr,
+    th,
+    table :not(.description) {
       border: none;
       border-spacing: 0;
       padding: 0;
@@ -134,8 +137,3 @@ css`
     }
   }
 `;
-
-
-
-
-

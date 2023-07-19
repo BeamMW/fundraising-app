@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { styled } from '@linaria/react';
 import { css } from '@linaria/core';
 import remarkGfm from 'remark-gfm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Window, Button, VotingBar, ChangeDecisionPopup } from '@app/shared/components';
+import {
+  Window, Button, VotingBar, ChangeDecisionPopup,
+} from '@app/shared/components';
 import { VoteProposal } from '@core/api';
-import { EpochStatsSection, ProposalsList } from '@app/containers/Main/components';
-import { selectRate, selectProposal, selectUserView,
-  selectCurrentProposals, selectFutureProposals,
-  selectAppParams, selectTotalsView, selectVoteCounter } from '../../store/selectors';
+import { EpochStatsSection } from '@app/containers/Main/components';
 import { loadRate, setLocalVoteCounter } from '@app/containers/Main/store/actions';
 import { Popover } from 'react-tiny-popover';
 import {
@@ -20,30 +19,37 @@ import {
   IconChangeDecision,
   IconExternalLink,
   IconQuorumAlert,
-  IconQuorumApprove
+  IconQuorumApprove,
 } from '@app/shared/icons';
-import { useParams } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
 import { PROPOSALS, ROUTES, BEAMX_TVL } from '@app/shared/constants';
-import { fromGroths, getProposalId, toGroths, numFormatter, calcVotingPower } from '@core/appUtils';
+import {
+  fromGroths, getProposalId, toGroths, numFormatter, calcVotingPower, openInNewTab,
+} from '@core/appUtils';
 import { ProcessedProposal } from '@app/core/types';
-import { openInNewTab } from '@core/appUtils'; 
 import { selectTransactions } from '@app/shared/store/selectors';
 import ReactMarkdown from 'react-markdown';
+import {
+  selectRate,
+  selectProposal,
+  selectUserView,
+  selectCurrentProposals,
+  selectAppParams,
+  selectTotalsView,
+  selectVoteCounter,
+} from '../../store/selectors';
 
-
-interface locationProps { 
-  id: number,
-  type: string,
-  index: number
+interface locationProps {
+  id: number;
+  type: string;
+  index: number;
 }
 
 interface ProposalContentProps {
-  proposal: ProcessedProposal,
-  state: locationProps,
-  callback?: any,
-  isChangeProcessActive?: boolean,
-  onDisableChangeProcessState?: ()=>void
+  proposal: ProcessedProposal;
+  state: locationProps;
+  callback?: any;
+  isChangeProcessActive?: boolean;
+  onDisableChangeProcessState?: () => void;
 }
 
 const StatsSectionClass = css`
@@ -53,21 +59,21 @@ const StatsSectionClass = css`
 const Proposal = styled.div`
   border-radius: 10px;
   width: 100%;
-  background-color: rgba(255, 255, 255, .05);
+  background-color: rgba(255, 255, 255, 0.05);
 `;
 
 const HeaderStyled = styled.div`
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, .05);
+  background-color: rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: row;
   width: 100%;
 
   > .id-section {
     font-weight: 400;
-    color: rgba(255, 255, 255, .5);
+    color: rgba(255, 255, 255, 0.5);
   }
 
   > .middle-section {
@@ -84,7 +90,7 @@ const HeaderStyled = styled.div`
     > .forum-link {
       font-weight: 400;
       font-size: 16px;
-      color: #00F6D2;
+      color: #00f6d2;
       margin-top: 10px;
       display: flex;
       cursor: pointer;
@@ -101,7 +107,7 @@ const HeaderStyled = styled.div`
     margin-top: 2px;
     margin-left: auto;
     font-size: 12px;
-    opacity: .5;
+    opacity: 0.5;
   }
 `;
 
@@ -267,12 +273,11 @@ const StyledStats = styled.div`
   > .quorum {
     margin-left: 60px;
   }
-
 `;
 
 const StyledStakeTitle = styled.div`
   font-size: 12px;
-  opacity: .5;
+  opacity: 0.5;
 `;
 
 const StyledHorSeparator = styled.div`
@@ -329,91 +334,83 @@ const QuorumIconClass = css`
   margin-left: 5px;
 `;
 
-const CurrentProposalContent: React.FC<ProposalContentProps> = (
-  {proposal, state, callback, isChangeProcessActive, onDisableChangeProcessState}
-) => {
+const CurrentProposalContent: React.FC<ProposalContentProps> = ({
+  proposal,
+  callback,
+  isChangeProcessActive,
+  onDisableChangeProcessState,
+}) => {
   const dispatch = useDispatch();
   const userViewData = useSelector(selectUserView());
   const currentProposals = useSelector(selectCurrentProposals());
   const voteCounter = useSelector(selectVoteCounter());
   const totalsView = useSelector(selectTotalsView());
-  const [isVoted, setIsVoted] = useState(false);
+
   const [isQuorumPassed, setQuorumPassed] = useState(false);
   const transactions = useSelector(selectTransactions());
   const [isVoteInProgress, setVoteInProgress] = useState(false);
   const [isPopoverOpen, setPopoverState] = useState(false);
 
   useEffect(() => {
-    if (proposal.voted !== undefined && proposal.voted < 255) {
-      setIsVoted(true);
-    }
-
-    if (proposal.data.quorum !== undefined && 
-      (proposal.data.quorum.type === 'beamx' ? proposal.stats.result.variants[1] >= toGroths(proposal.data.quorum.value) : 
-      ((fromGroths(proposal.stats.result.variants[1]) / BEAMX_TVL) * 100 >= proposal.data.quorum.value))) {
-        setQuorumPassed(true);
+    if (
+      proposal.data.quorum !== undefined
+      && (proposal.data.quorum.type === 'beamx'
+        ? proposal.stats.result.variants[1] >= toGroths(proposal.data.quorum.value)
+        : (fromGroths(proposal.stats.result.variants[1]) / BEAMX_TVL) * 100 >= proposal.data.quorum.value)
+    ) {
+      setQuorumPassed(true);
     }
 
     const activeVotes = localStorage.getItem('votes');
-    
-    if (activeVotes) {
-      const votes = [...(JSON.parse(activeVotes).votes)];
 
-      const currentProposal = votes.find((item) => {
-        return item.id === proposal.id;
-      });
+    if (activeVotes) {
+      const votes = [...JSON.parse(activeVotes).votes];
+
+      const currentProposal = votes.find((item) => item.id === proposal.id);
 
       if (currentProposal) {
-        const isInProgress = transactions.find((tx) => {
-          return tx.txId === currentProposal.txid && tx.status === 5;
-        });
+        const isInProgress = transactions.find((tx) => tx.txId === currentProposal.txid && tx.status === 5);
 
         setVoteInProgress(!!isInProgress);
-        
-        if (!isInProgress) {
-          const updatedVotes = votes.filter(function(item){ 
-            return item.id !== proposal.id;
-          });
 
-          localStorage.setItem('votes', JSON.stringify({votes: updatedVotes}));
+        if (!isInProgress) {
+          const updatedVotes = votes.filter((item) => item.id !== proposal.id);
+
+          localStorage.setItem('votes', JSON.stringify({ votes: updatedVotes }));
         }
       }
     }
-  }, [proposal]);
-  
+  }, [proposal, transactions]);
+
   const handleVoteClick = (vote: number) => {
-    let votes = userViewData.current_votes !== undefined ? [...userViewData.current_votes] : 
-      new Array(currentProposals.items.length).fill(255);
+    const votes = userViewData.current_votes !== undefined
+      ? [...userViewData.current_votes]
+      : new Array(currentProposals.items.length).fill(255);
 
     const index = currentProposals.items.indexOf(proposal);
     votes[index] = vote;
 
     const activeVotes = localStorage.getItem('votes');
-    
+
     if (activeVotes) {
-      const votesInProgress = [...(JSON.parse(activeVotes).votes)];
-        
-      let index = 0;
-      for (let voteInProgress of [...votesInProgress]) {
-        const voteTransaction = transactions.find((tx) => {
-          return tx.txId === voteInProgress.txid && tx.status === 5;
-        })
+      let votesInProgress = [...JSON.parse(activeVotes).votes];
+
+      votesInProgress = votesInProgress.filter((voteInProgress) => {
+        const voteTransaction = transactions.find((tx) => tx.txId === voteInProgress.txid && tx.status === 5);
 
         if (!voteTransaction) {
-          votesInProgress.splice(index, 1);
-        } else {
-          const voteItem = currentProposals.items.find((item) => {
-            return item.id === voteInProgress.id;
-          });
-  
-          if (voteItem) {
-            const voteIndex = currentProposals.items.indexOf(voteItem);
-            votes[voteIndex] = voteInProgress.vote;
-          }
+          return false;
         }
-      }
+        const voteItem = currentProposals.items.find((item) => item.id === voteInProgress.id);
 
-      localStorage.setItem('votes', JSON.stringify({votes: votesInProgress}));
+        if (voteItem) {
+          const voteIndex = currentProposals.items.indexOf(voteItem);
+          votes[voteIndex] = voteInProgress.vote;
+        }
+
+        return true;
+      });
+      localStorage.setItem('votes', JSON.stringify({ votes: votesInProgress }));
     }
 
     const counter = voteCounter + 1;
@@ -428,366 +425,465 @@ const CurrentProposalContent: React.FC<ProposalContentProps> = (
 
   return (
     <ContentStyled>
-      { isChangeProcessActive || (proposal.voted === undefined || proposal.voted === 255) ?
-        (<div className='controls'>
-          <Button variant='regular' pallete='green' onClick={()=>handleVoteClick(1)}
+      {isChangeProcessActive || proposal.voted === undefined || proposal.voted === 255 ? (
+        <div className="controls">
+          <Button
+            variant="regular"
+            pallete="green"
+            onClick={() => handleVoteClick(1)}
             disabled={isVoteInProgress || userViewData.stake_active === 0}
-            className='button yes' icon={IconVoteButtonYes} >YES</Button>
-          <Button variant='regular' pallete='vote-red' onClick={()=>handleVoteClick(0)}
-            disabled={isVoteInProgress || userViewData.stake_active === 0}
-            className='button no' icon={IconVoteButtonNo} >NO</Button>
-        </div>) :
-        (<div className='voted-controls'>
-          { proposal.voted === 1 ? 
-            (<span>
-              <IconVotedYes/>
-              <span className='voted-yes'>You voted YES</span>
-            </span>) : 
-            (<span>
-              <IconVotedNo/>
-              <span className='voted-no'>You voted NO</span>
-            </span>)
-          }
-          <Button pallete='white'
-            className='change-button'
-            onClick={handleChange}
-            variant='link'
-            icon={IconChangeDecision}>
-                change decision
+            className="button yes"
+            icon={IconVoteButtonYes}
+          >
+            YES
           </Button>
-        </div>)
-      }
-      <VotingBar active={proposal.voted !== undefined && proposal.voted < 255}
+          <Button
+            variant="regular"
+            pallete="vote-red"
+            onClick={() => handleVoteClick(0)}
+            disabled={isVoteInProgress || userViewData.stake_active === 0}
+            className="button no"
+            icon={IconVoteButtonNo}
+          >
+            NO
+          </Button>
+        </div>
+      ) : (
+        <div className="voted-controls">
+          {proposal.voted === 1 ? (
+            <span>
+              <IconVotedYes />
+              <span className="voted-yes">You voted YES</span>
+            </span>
+          ) : (
+            <span>
+              <IconVotedNo />
+              <span className="voted-no">You voted NO</span>
+            </span>
+          )}
+          <Button
+            pallete="white"
+            className="change-button"
+            onClick={handleChange}
+            variant="link"
+            icon={IconChangeDecision}
+          >
+            change decision
+          </Button>
+        </div>
+      )}
+      <VotingBar
+        active={proposal.voted !== undefined && proposal.voted < 255}
         value={proposal.stats.result.variants[1]}
-        percent={proposal.stats.result.variants[1] / proposal.stats.result.total * 100}
-        voteType='yes'/>
-      <VotingBar active={proposal.voted !== undefined && proposal.voted < 255}
+        percent={(proposal.stats.result.variants[1] / proposal.stats.result.total) * 100}
+        voteType="yes"
+      />
+      <VotingBar
+        active={proposal.voted !== undefined && proposal.voted < 255}
         value={proposal.stats.result.variants[0]}
-        percent={proposal.stats.result.variants[0] / proposal.stats.result.total * 100}
-        voteType='no'/>
+        percent={(proposal.stats.result.variants[0] / proposal.stats.result.total) * 100}
+        voteType="no"
+      />
       <StyledStats>
-        <span className='total'>
+        <span className="total">
           <StyledStakeTitle>Total staked</StyledStakeTitle>
-          <StyledStatsValue>{numFormatter(fromGroths(totalsView.stake_active))} BEAMX</StyledStatsValue>
+          <StyledStatsValue>
+            {numFormatter(fromGroths(totalsView.stake_active))}
+            {' '}
+            BEAMX
+          </StyledStatsValue>
         </span>
-        <span className='voted'>
-            <StyledStakeTitle>Voted</StyledStakeTitle>
-            <StyledStatsValue>{numFormatter(fromGroths(proposal.stats.result.total))} BEAMX</StyledStatsValue>
+        <span className="voted">
+          <StyledStakeTitle>Voted</StyledStakeTitle>
+          <StyledStatsValue>
+            {numFormatter(fromGroths(proposal.stats.result.total))}
+            {' '}
+            BEAMX
+          </StyledStatsValue>
         </span>
-        <span className='staked'>
+        <span className="staked">
           <StyledStakeTitle>Your staked</StyledStakeTitle>
-          <StyledStatsValue>{numFormatter(fromGroths(userViewData.stake_active))} BEAMX</StyledStatsValue>
+          <StyledStatsValue>
+            {numFormatter(fromGroths(userViewData.stake_active))}
+            {' '}
+            BEAMX
+          </StyledStatsValue>
         </span>
-        {
-          proposal.data.quorum !== undefined && 
-          <span className='quorum'>
+        {proposal.data.quorum !== undefined && (
+          <span className="quorum">
             <StyledStakeTitle>Quorum</StyledStakeTitle>
             <Popover
               isOpen={isPopoverOpen}
               positions={['top', 'bottom', 'left', 'right']}
-              content={
+              content={(
                 <StyledPopover>
-                  {proposal.data.quorum.type === 'percent' ? 
-                    numFormatter(BEAMX_TVL * (proposal.data.quorum.value / 100)) :
-                    numFormatter(proposal.data.quorum.value)} BEAMX votes «YES» needed 
+                  {proposal.data.quorum.type === 'percent'
+                    ? numFormatter(BEAMX_TVL * (proposal.data.quorum.value / 100))
+                    : numFormatter(proposal.data.quorum.value)}
+                  {' '}
+                  BEAMX votes «YES» needed
                 </StyledPopover>
-              }
+              )}
             >
               <StyledStatsValue>
-                { proposal.data.quorum.type === 'beamx' ? 
-                  (numFormatter(proposal.data.quorum.value) + ' BEAMX') :
-                  (proposal.data.quorum.value + '%') }
-                { 
-                  isQuorumPassed ? 
-                  <IconQuorumApprove className={QuorumIconClass}/> : 
-                  <IconQuorumAlert className={QuorumIconClass}
-                    onMouseEnter={()=>setPopoverState(true)}
-                    onMouseLeave={()=>setPopoverState(false)}/>
-                }
+                {proposal.data.quorum.type === 'beamx'
+                  ? `${numFormatter(proposal.data.quorum.value)} BEAMX`
+                  : `${proposal.data.quorum.value}%`}
+                {isQuorumPassed ? (
+                  <IconQuorumApprove className={QuorumIconClass} />
+                ) : (
+                  <IconQuorumAlert
+                    className={QuorumIconClass}
+                    onMouseEnter={() => setPopoverState(true)}
+                    onMouseLeave={() => setPopoverState(false)}
+                  />
+                )}
               </StyledStatsValue>
             </Popover>
           </span>
-        }
-        {proposal.stats.result.total > 0 &&
+        )}
+        {proposal.stats.result.total > 0 && (
           <>
-            <VerticalSeparator/>
-            <span className='voted-yes'>
+            <VerticalSeparator />
+            <span className="voted-yes">
               <StyledStakeTitle>Voting results</StyledStakeTitle>
               <StyledStatsValue>
-                <span className='yes'>YES</span> ({calcVotingPower(proposal.stats.result.variants[1], proposal.stats.result.total)}%)
-                <span className='no'>NO</span> ({calcVotingPower(proposal.stats.result.variants[0], proposal.stats.result.total)}%)
+                <span className="yes">YES</span>
+                {' '}
+                (
+                {calcVotingPower(proposal.stats.result.variants[1], proposal.stats.result.total)}
+                %)
+                <span className="no">NO</span>
+                {' '}
+                (
+                {calcVotingPower(proposal.stats.result.variants[0], proposal.stats.result.total)}
+                %)
               </StyledStatsValue>
             </span>
-          </> 
-        }
+          </>
+        )}
       </StyledStats>
-      <StyledHorSeparator/>
-      <div className='content'>
-        <div className='description'>
+      <StyledHorSeparator />
+      <div className="content">
+        <div className="description">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              a: ({node, ...props}) => <span style={{display: 'inline-flex', alignItems: 'center'}}><a target="_blank" style={{
-                color: '#00F6D2', 
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '14px',
-                lineHeight: '15px'
-              }} {...props} /> 
-              <IconExternalLink style={{marginLeft: '5px'}} className='icon-link'/></span>
+              a: ({ node, ...props }) => (
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <a
+                    target="_blank"
+                    style={{
+                      color: '#00F6D2',
+                      textDecoration: 'none',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      lineHeight: '15px',
+                    }}
+                    {...props}
+                  />
+                  <IconExternalLink style={{ marginLeft: '5px' }} className="icon-link" />
+                </span>
+              ),
             }}
-          >{proposal.data.description}</ReactMarkdown>
+          >
+            {proposal.data.description}
+          </ReactMarkdown>
         </div>
-        {
-          proposal.data.ref_link.length > 0 && 
+        {proposal.data.ref_link.length > 0 && (
           <>
-            <div className='ref-title'>References</div>
-            <div className='ref-link' onClick={() => {openInNewTab(proposal.data.forum_link)}}>
-                <span>{proposal.data.ref_link}</span>
-                <IconExternalLink className='icon-link'/>
-            </div>
+            <div className="ref-title">References</div>
+            <button
+              type="button"
+              className="ref-link"
+              onClick={() => {
+                openInNewTab(proposal.data.forum_link);
+              }}
+            >
+              <span>{proposal.data.ref_link}</span>
+              <IconExternalLink className="icon-link" />
+            </button>
           </>
-        }
+        )}
       </div>
     </ContentStyled>
   );
 };
 
-const PrevProposalContent: React.FC<ProposalContentProps> = (
-  {proposal, state, callback, isChangeProcessActive, onDisableChangeProcessState}
-) => {
-  const userViewData = useSelector(selectUserView());
-  const totalsView = useSelector(selectTotalsView());
-  const [isVoted, setIsVoted] = useState(false);
+const PrevProposalContent: React.FC<ProposalContentProps> = ({ proposal }) => {
   const [isQuorumPassed, setQuorumPassed] = useState(false);
-  const transactions = useSelector(selectTransactions());
-  const [isVoteInProgress, setVoteInProgress] = useState(false);
+
   const [isPopoverOpen, setPopoverState] = useState(false);
 
   useEffect(() => {
-    if (proposal.voted !== undefined && proposal.voted < 255) {
-      setIsVoted(true);
-    }
-
-    if (proposal.data.quorum !== undefined && 
-      (proposal.data.quorum.type === 'beamx' ? (proposal.stats.result.variants[1] >= toGroths(proposal.data.quorum.value)) : 
-      ((fromGroths(proposal.stats.result.variants[1]) / BEAMX_TVL) * 100 >= proposal.data.quorum.value))) {
-        setQuorumPassed(true);
-    }
-
-    const activeVotes = localStorage.getItem('votes');
-    
-    if (activeVotes) {
-      const votes = [...(JSON.parse(activeVotes).votes)];
-
-      const currentProposal = votes.find((item) => {
-        return item.id === proposal.id;
-      });
-
-      if (currentProposal) {
-        const isInProgress = transactions.find((tx) => {
-          return tx.txId === currentProposal.txid && tx.status === 5;
-        });
-
-        setVoteInProgress(!!isInProgress);
-        
-        // if (!isInProgress) {
-        //   const updatedVotes = votes.filter(function(item){ 
-        //     return item.id !== proposal.id;
-        //   });
-
-        //   localStorage.setItem('votes', JSON.stringify({votes: updatedVotes}));
-        // }
-      }
+    if (
+      proposal.data.quorum !== undefined
+      && (proposal.data.quorum.type === 'beamx'
+        ? proposal.stats.result.variants[1] >= toGroths(proposal.data.quorum.value)
+        : (fromGroths(proposal.stats.result.variants[1]) / BEAMX_TVL) * 100 >= proposal.data.quorum.value)
+    ) {
+      setQuorumPassed(true);
     }
   }, [proposal]);
 
   return (
     <ContentStyled>
-      { proposal.prevVoted && proposal.prevVoted.value < 255 ?
-      <div className='voted-controls'>
-          { proposal.prevVoted.value === 1 ? 
-            (<span>
-              <IconVotedYes/>
-              <span className='voted-yes'>You voted YES</span>
-            </span>) : 
-            (<span>
-              <IconVotedNo/>
-              <span className='voted-no'>You voted NO</span>
-            </span>)
-          }
-          <div className='voted-cant'>The epoch #{proposal.epoch} is finished. You can’t change your decision.</div>
-      </div> : 
-      <div className='voted-finished'>
-        The epoch #{proposal.epoch} is finished. You hadn’t voted.
-      </div>
-      }
-      <VotingBar active={proposal.prevVoted && proposal.prevVoted.value < 255}
+      {proposal.prevVoted && proposal.prevVoted.value < 255 ? (
+        <div className="voted-controls">
+          {proposal.prevVoted.value === 1 ? (
+            <span>
+              <IconVotedYes />
+              <span className="voted-yes">You voted YES</span>
+            </span>
+          ) : (
+            <span>
+              <IconVotedNo />
+              <span className="voted-no">You voted NO</span>
+            </span>
+          )}
+          <div className="voted-cant">
+            The epoch #
+            {proposal.epoch}
+            {' '}
+            is finished. You can’t change your decision.
+          </div>
+        </div>
+      ) : (
+        <div className="voted-finished">
+          The epoch #
+          {proposal.epoch}
+          {' '}
+          is finished. You hadn’t voted.
+        </div>
+      )}
+      <VotingBar
+        active={proposal.prevVoted && proposal.prevVoted.value < 255}
         value={proposal.stats.result.variants[1]}
-        percent={proposal.stats.result.variants[1] / proposal.stats.result.total * 100}
-        voteType='yes'/>
-      <VotingBar active={proposal.prevVoted && proposal.prevVoted.value < 255}
+        percent={(proposal.stats.result.variants[1] / proposal.stats.result.total) * 100}
+        voteType="yes"
+      />
+      <VotingBar
+        active={proposal.prevVoted && proposal.prevVoted.value < 255}
         value={proposal.stats.result.variants[0]}
-        percent={proposal.stats.result.variants[0] / proposal.stats.result.total * 100}
-        voteType='no'/>
+        percent={(proposal.stats.result.variants[0] / proposal.stats.result.total) * 100}
+        voteType="no"
+      />
       <StyledStats>
-        <span className='total'>
+        <span className="total">
           <StyledStakeTitle>Total staked</StyledStakeTitle>
-          <StyledStatsValue>{numFormatter(fromGroths(proposal.stats.result.stake_active))} BEAMX</StyledStatsValue>
+          <StyledStatsValue>
+            {numFormatter(fromGroths(proposal.stats.result.stake_active))}
+            {' '}
+            BEAMX
+          </StyledStatsValue>
         </span>
-       <span className='voted'>
-            <StyledStakeTitle>Voted</StyledStakeTitle>
-            <StyledStatsValue>{numFormatter(fromGroths(proposal.stats.result.total))} BEAMX</StyledStatsValue>
+        <span className="voted">
+          <StyledStakeTitle>Voted</StyledStakeTitle>
+          <StyledStatsValue>
+            {numFormatter(fromGroths(proposal.stats.result.total))}
+            {' '}
+            BEAMX
+          </StyledStatsValue>
         </span>
-        { proposal.prevVoted &&
-        <span className='staked'>
-          <StyledStakeTitle>Your staked</StyledStakeTitle>
-          <StyledStatsValue>{numFormatter(fromGroths(proposal.prevVoted.stake))} BEAMX</StyledStatsValue>
-        </span>}
-        {
-          proposal.data.quorum !== undefined && 
-          <span className='quorum'>
+        {proposal.prevVoted && (
+          <span className="staked">
+            <StyledStakeTitle>Your staked</StyledStakeTitle>
+            <StyledStatsValue>
+              {numFormatter(fromGroths(proposal.prevVoted.stake))}
+              {' '}
+              BEAMX
+            </StyledStatsValue>
+          </span>
+        )}
+        {proposal.data.quorum !== undefined && (
+          <span className="quorum">
             <StyledStakeTitle>Quorum</StyledStakeTitle>
             <Popover
               isOpen={isPopoverOpen}
               positions={['top', 'bottom', 'left', 'right']}
-              content={
+              content={(
                 <StyledPopover>
-                  {proposal.data.quorum.type === 'percent' ? 
-                    numFormatter(BEAMX_TVL * (proposal.data.quorum.value / 100)) :
-                    numFormatter(proposal.data.quorum.value)} BEAMX votes «YES» needed 
+                  {proposal.data.quorum.type === 'percent'
+                    ? numFormatter(BEAMX_TVL * (proposal.data.quorum.value / 100))
+                    : numFormatter(proposal.data.quorum.value)}
+                  {' '}
+                  BEAMX votes «YES» needed
                 </StyledPopover>
-              }
+              )}
             >
               <StyledStatsValue>
-                { proposal.data.quorum.type === 'beamx' ? 
-                  (numFormatter(proposal.data.quorum.value) + ' BEAMX') :
-                  (proposal.data.quorum.value + '%') }
-                { 
-                  isQuorumPassed ? 
-                  <IconQuorumApprove className={QuorumIconClass}/> : 
-                  <IconQuorumAlert className={QuorumIconClass}
-                    onMouseEnter={()=>setPopoverState(true)}
-                    onMouseLeave={()=>setPopoverState(false)}/>
-                }
+                {proposal.data.quorum.type === 'beamx'
+                  ? `${numFormatter(proposal.data.quorum.value)} BEAMX`
+                  : `${proposal.data.quorum.value}%`}
+                {isQuorumPassed ? (
+                  <IconQuorumApprove className={QuorumIconClass} />
+                ) : (
+                  <IconQuorumAlert
+                    className={QuorumIconClass}
+                    onMouseEnter={() => setPopoverState(true)}
+                    onMouseLeave={() => setPopoverState(false)}
+                  />
+                )}
               </StyledStatsValue>
             </Popover>
           </span>
-        }
-        {proposal.stats.result.total > 0 &&
+        )}
+        {proposal.stats.result.total > 0 && (
           <>
-            <VerticalSeparator/>
-            <span className='voted-yes'>
+            <VerticalSeparator />
+            <span className="voted-yes">
               <StyledStakeTitle>Voting results</StyledStakeTitle>
               <StyledStatsValue>
-                <span className='yes'>YES</span> ({calcVotingPower(proposal.stats.result.variants[1], proposal.stats.result.total)}%)
-                <span className='no'>NO</span> ({calcVotingPower(proposal.stats.result.variants[0], proposal.stats.result.total)}%)
+                <span className="yes">YES</span>
+                {' '}
+                (
+                {calcVotingPower(proposal.stats.result.variants[1], proposal.stats.result.total)}
+                %)
+                <span className="no">NO</span>
+                {' '}
+                (
+                {calcVotingPower(proposal.stats.result.variants[0], proposal.stats.result.total)}
+                %)
               </StyledStatsValue>
             </span>
-          </> 
-        }
+          </>
+        )}
       </StyledStats>
-      <StyledHorSeparator/>
-      <div className='content'>
-        <div className='description'>
+      <StyledHorSeparator />
+      <div className="content">
+        <div className="description">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              a: ({node, ...props}) => <span style={{display: 'inline-flex', alignItems: 'center'}}><a target="_blank" style={{
-                color: '#00F6D2', 
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '14px',
-                lineHeight: '15px'
-              }} {...props} /> 
-              <IconExternalLink style={{marginLeft: '5px'}} className='icon-link'/></span>
+              a: ({ node, ...props }) => (
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <a
+                    target="_blank"
+                    style={{
+                      color: '#00F6D2',
+                      textDecoration: 'none',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      lineHeight: '15px',
+                    }}
+                    {...props}
+                  />
+                  <IconExternalLink style={{ marginLeft: '5px' }} className="icon-link" />
+                </span>
+              ),
             }}
-          >{proposal.data.description}</ReactMarkdown>
+          >
+            {proposal.data.description}
+          </ReactMarkdown>
         </div>
-        {
-          proposal.data.ref_link.length > 0 && 
+        {proposal.data.ref_link.length > 0 && (
           <>
-            <div className='ref-title'>References</div>
-            <div className='ref-link' onClick={() => {openInNewTab(proposal.data.forum_link)}}>
-                <span>{proposal.data.ref_link}</span>
-                <IconExternalLink className='icon-link'/>
+            <div className="ref-title">References</div>
+            <div
+              className="ref-link"
+              onClick={() => {
+                openInNewTab(proposal.data.forum_link);
+              }}
+            >
+              <span>{proposal.data.ref_link}</span>
+              <IconExternalLink className="icon-link" />
             </div>
           </>
-        }
+        )}
       </div>
     </ContentStyled>
   );
 };
 
-const FutureProposalContent: React.FC<ProposalContentProps> = (
-  {proposal, state}
-) => {
+const FutureProposalContent: React.FC<ProposalContentProps> = ({ proposal }) => {
   const appParams = useSelector(selectAppParams());
   const userViewData = useSelector(selectUserView());
   const totalsView = useSelector(selectTotalsView());
 
   return (
     <ContentStyled>
-      { proposal.data &&
-        <div className='content'>
-          <div className='epoch-comes'>The voting will be active when epoch #{appParams.current.iEpoch + 1} comes.</div>
-          <div className='stake-info'>
-            <span className='total'>
+      {proposal.data && (
+        <div className="content">
+          <div className="epoch-comes">
+            The voting will be active when epoch #
+            {appParams.current.iEpoch + 1}
+            {' '}
+            comes.
+          </div>
+          <div className="stake-info">
+            <span className="total">
               <StyledStakeTitle>Total staked</StyledStakeTitle>
-              <div className='value'>
-                {numFormatter(fromGroths(totalsView.stake_passive + totalsView.stake_active))} BEAMX
+              <div className="value">
+                {numFormatter(fromGroths(totalsView.stake_passive + totalsView.stake_active))}
+                {' '}
+                BEAMX
               </div>
             </span>
-            <span className='other'>
+            <span className="other">
               <StyledStakeTitle>Your staked</StyledStakeTitle>
-              <div className='value'>
-                {numFormatter(fromGroths(userViewData.stake_passive + userViewData.stake_active))} BEAMX
+              <div className="value">
+                {numFormatter(fromGroths(userViewData.stake_passive + userViewData.stake_active))}
+                {' '}
+                BEAMX
               </div>
             </span>
-            { 
-              proposal.data.quorum !== undefined &&
-              <span className='other'>
+            {proposal.data.quorum !== undefined && (
+              <span className="other">
                 <StyledStakeTitle>Votes quorum</StyledStakeTitle>
-                <div className='value'>
-                  { proposal.data.quorum.type === 'percent' ? 
-                    (proposal.data.quorum.value + '%') :
-                    (numFormatter(proposal.data.quorum.value) + ' BEAMX') }
+                <div className="value">
+                  {proposal.data.quorum.type === 'percent'
+                    ? `${proposal.data.quorum.value}%`
+                    : `${numFormatter(proposal.data.quorum.value)} BEAMX`}
                 </div>
               </span>
-            }
+            )}
           </div>
-          <div className='separator'></div>
-          <div className='description'>
-            <ReactMarkdown 
+          <div className="separator" />
+          <div className="description">
+            <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                a: ({node, ...props}) => <span style={{display: 'inline-flex', alignItems: 'center'}}><a target="_blank" style={{
-                  color: '#00F6D2', 
-                  textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  lineHeight: '15px'
-                }} {...props} /> 
-                <IconExternalLink style={{marginLeft: '5px'}} className='icon-link'/></span>
+                a: ({ node, ...props }) => (
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <a
+                      target="_blank"
+                      style={{
+                        color: '#00F6D2',
+                        textDecoration: 'none',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        lineHeight: '15px',
+                      }}
+                      {...props}
+                    />
+                    <IconExternalLink style={{ marginLeft: '5px' }} className="icon-link" />
+                  </span>
+                ),
               }}
-            >{proposal.data.description}</ReactMarkdown>
+            >
+              {proposal.data.description}
+            </ReactMarkdown>
           </div>
-          {
-            proposal.data.ref_link.length > 0 && 
+          {proposal.data.ref_link.length > 0 && (
             <>
-              <div className='ref-title'>References</div>
-              <div className='ref-link' onClick={() => {openInNewTab(proposal.data.forum_link)}}>
-                  <span>{proposal.data.ref_link}</span>
-                  <IconExternalLink className='icon-link'/>
-              </div>
+              <div className="ref-title">References</div>
+              <button
+                className="ref-link"
+                type="button"
+                onClick={() => {
+                  openInNewTab(proposal.data.forum_link);
+                }}
+              >
+                <span>{proposal.data.ref_link}</span>
+                <IconExternalLink className="icon-link" />
+              </button>
             </>
-          }
+          )}
         </div>
-      }
+      )}
     </ContentStyled>
   );
-}
-
+};
 
 const ProposalPage: React.FC = () => {
   const navigate = useNavigate();
@@ -803,10 +899,9 @@ const ProposalPage: React.FC = () => {
     }
   }, [dispatch, rate]);
 
-  const params = useParams();
   const state = location.state as locationProps;
   const proposal = useSelector(selectProposal(state.id, state.type));
-  
+
   const handlePrevious: React.MouseEventHandler = () => {
     if (state.type === PROPOSALS.CURRENT) {
       navigate(ROUTES.MAIN.EPOCHS);
@@ -820,7 +915,7 @@ const ProposalPage: React.FC = () => {
   const ContentComponent = {
     current: CurrentProposalContent,
     future: FutureProposalContent,
-    prev: PrevProposalContent
+    prev: PrevProposalContent,
   }[state.type];
 
   const getDate = (timestamp: number) => {
@@ -828,38 +923,56 @@ const ProposalPage: React.FC = () => {
     const yearString = date.toLocaleDateString(undefined, { year: 'numeric' });
     const monthString = date.toLocaleDateString(undefined, { month: 'numeric' });
     const dayString = date.toLocaleDateString(undefined, { day: 'numeric' });
-    return `${dayString}.${'0' + monthString.slice(-2)}.${yearString}`;
+    return `${dayString}.${`0${monthString.slice(-2)}`}.${yearString}`;
   };
 
   return (
     <>
       <Window onPrevious={handlePrevious}>
-        <EpochStatsSection
-          state='none'
-          className={StatsSectionClass}></EpochStatsSection>
+        <EpochStatsSection state="none" className={StatsSectionClass} />
         <Proposal>
           <HeaderStyled>
-            <div className='id-section'>#{getProposalId(proposal.id)}</div>
-            <div className='middle-section'>
-              <div className='title'>{proposal.data.title}</div>
-              <div className='forum-link' onClick={() => {openInNewTab(proposal.data.forum_link)}}>
-                <span>Open forum discussion</span>
-                <IconExternalLink className='icon-link'/>
-              </div>
+            <div className="id-section">
+              #
+              {getProposalId(proposal.id)}
             </div>
-            { proposal.data.timestamp ? <div className='date-section'>
-              {getDate(proposal.data.timestamp)}
-            </div> : null }
+            <div className="middle-section">
+              <div className="title">{proposal.data.title}</div>
+              <button
+                type="button"
+                className="forum-link"
+                onClick={() => {
+                  openInNewTab(proposal.data.forum_link);
+                }}
+              >
+                <span>Open forum discussion</span>
+                <IconExternalLink className="icon-link" />
+              </button>
+            </div>
+            {proposal.data.timestamp ? <div className="date-section">{getDate(proposal.data.timestamp)}</div> : null}
           </HeaderStyled>
-          <ContentComponent isChangeProcessActive={isChangeActive}
-            onDisableChangeProcessState={()=>setChangeProcessState(false)}
-            callback={()=>{setChangePopupState(true)}} proposal={proposal} state={state}/>
+          <ContentComponent
+            isChangeProcessActive={isChangeActive}
+            onDisableChangeProcessState={() => setChangeProcessState(false)}
+            callback={() => {
+              setChangePopupState(true);
+            }}
+            proposal={proposal}
+            state={state}
+          />
         </Proposal>
       </Window>
-      <ChangeDecisionPopup voted={proposal.voted !== undefined ? proposal.voted : null}
-        onChangeResult={(res)=>{setChangeProcessState(res)}}
+      <ChangeDecisionPopup
+        voted={proposal.voted !== undefined ? proposal.voted : null}
+        onChangeResult={(res) => {
+          setChangeProcessState(res);
+        }}
         propTitle={proposal.data.title}
-        visible={isChangeVisible} onCancel={()=>{setChangePopupState(false)}}/>
+        visible={isChangeVisible}
+        onCancel={() => {
+          setChangePopupState(false);
+        }}
+      />
     </>
   );
 };

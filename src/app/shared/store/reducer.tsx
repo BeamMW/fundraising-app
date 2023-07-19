@@ -18,10 +18,10 @@ const initialState: SharedStateType = {
     tip_height: 0,
     tip_prev_state_hash: '',
     tip_state_hash: '',
-    tip_state_timestamp: 0
+    tip_state_timestamp: 0,
   },
   transactions: [],
-  isLoaded: false
+  isLoaded: false,
 };
 
 const reducer = createReducer<SharedStateType, Action>(initialState)

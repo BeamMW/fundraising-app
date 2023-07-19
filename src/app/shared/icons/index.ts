@@ -49,7 +49,6 @@ export {
   IconLogout,
   IconCancel,
   IconBeamx,
-
   IconEpochSelector,
   IconSearch,
   IconOldEpoches,
@@ -67,7 +66,6 @@ export {
   IconCreateProposal,
   IconArrowGreenUp,
   IconArrowRedDown,
-
   IconVoteButtonNo,
   IconVoteButtonYes,
   IconVotedNo,
@@ -79,5 +77,5 @@ export {
   IconChangeBlue,
   IconAngleSmallUp,
   IconSort,
-  IconSearchCancel
-}
+  IconSearchCancel,
+};

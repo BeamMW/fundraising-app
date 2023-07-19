@@ -1,7 +1,7 @@
 import { GROTHS_IN_BEAM } from '@app/shared/constants';
 
 export const copyToClipboard = (value: string) => {
-  let textField = document.createElement('textarea');
+  const textField = document.createElement('textarea');
   textField.innerText = value;
   document.body.appendChild(textField);
   textField.select();
@@ -44,7 +44,7 @@ export function toUSD(amount: number, rate: number): string {
 }
 
 export function calcVotingPower(value: number, fullValue: number) {
-  if (!value || value == 0) {
+  if (!value || value === 0) {
     return 0;
   }
 
@@ -68,37 +68,44 @@ export function getSign(positive: boolean): string {
   return positive ? '+ ' : '- ';
 }
 
-export function Base64DecodeUrl(str){
-  if (str.length % 4 != 0)
-    str += ('===').slice(0, 4 - (str.length % 4));
+export function Base64DecodeUrl(inputStr) {
+  let str = inputStr;
+  if (str.length % 4 !== 0) {
+    str += '==='.slice(0, 4 - (str.length % 4));
+  }
   return str.replace(/-/g, '+').replace(/_/g, '/');
 }
 
-export function getProposalId (id: number) {
+export function getProposalId(id: number) {
   if (id < 10) {
-      return '000' + id;
-  } else if (id < 100) {
-      return '00' + id;
-  } else if (id < 1000) {
-      return '0' + id;
-  } 
+    return `000${id}`;
+  }
+  if (id < 100) {
+    return `00${id}`;
+  }
+  if (id < 1000) {
+    return `0${id}`;
+  }
+  return id.toString();
 }
 
-export function Base64EncodeUrl(str){
-  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+export function Base64EncodeUrl(str) {
+  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
-
-export function openInNewTab (url) {
-  const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-  if (newWindow) newWindow.opener = null
+export function openInNewTab(url) {
+  const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+  if (newWindow) newWindow.opener = null;
 }
 
 export function numFormatter(num) {
   if (num > 999 && num < 1000000) {
-      return parseFloat((num / 1000).toFixed(2)) + 'K';  
-  } else if (num >= 1000000) {
-      return parseFloat((num / 1000000).toFixed(2)) + 'M';
-  } else if (num <= 999){
-      return parseFloat(num.toFixed(2));
+    return `${parseFloat((num / 1000).toFixed(2))}K`;
   }
+  if (num >= 1000000) {
+    return `${parseFloat((num / 1000000).toFixed(2))}M`;
+  }
+  if (num <= 999) {
+    return parseFloat(num.toFixed(2)).toString();
+  }
+  return num.toString();
 }

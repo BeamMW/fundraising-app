@@ -6,29 +6,29 @@ import { useSelector } from 'react-redux';
 import { selectSystemState } from '@app/shared/store/selectors';
 import { styled } from '@linaria/react';
 import { css } from '@linaria/core';
-import { selectUserView } from '@app/containers/Main/store/selectors';
-import { selectAppParams, selectBlocksLeft } from '@app/containers/Main/store/selectors';
+import { selectUserView, selectAppParams, selectBlocksLeft } from '@app/containers/Main/store/selectors';
+
 interface WithdrawPopupProps {
   visible?: boolean;
-  onCancel?: ()=>void;
+  onCancel?: () => void;
   voted: number;
   propTitle: string;
-  onChangeResult: (res: boolean)=>void;
+  onChangeResult: (res: boolean) => void;
 }
 
-const StyledContent = styled.div`
-
-`;
+const StyledContent = styled.div``;
 
 const WithdrawPopupClass = css`
-    width: 450px !important;
+  width: 450px !important;
 `;
 
 const WithdrawButtonsClass = css`
-    max-width: 145px !important;
+  max-width: 145px !important;
 `;
 
-const ChangeDecisionPopup: React.FC<WithdrawPopupProps> = ({ visible, onCancel, voted, propTitle, onChangeResult }) => {
+const ChangeDecisionPopup: React.FC<WithdrawPopupProps> = ({
+  visible, onCancel, voted, propTitle, onChangeResult,
+}) => {
   const userViewData = useSelector(selectUserView());
   const appParams = useSelector(selectAppParams());
   const [nextEpochDate, setNextEpochStartDate] = useState(null);
@@ -41,30 +41,45 @@ const ChangeDecisionPopup: React.FC<WithdrawPopupProps> = ({ visible, onCancel, 
       visible={visible}
       title="Change decision"
       cancelButton={(
-        <Button variant='ghost' className={WithdrawButtonsClass} icon={IconCancel} onClick={()=>{
+        <Button
+          variant="ghost"
+          className={WithdrawButtonsClass}
+          icon={IconCancel}
+          onClick={() => {
             onChangeResult(false);
             onCancel();
-          }}>
+          }}
+        >
           cancel
         </Button>
       )}
       confirmButton={(
-        <Button variant='regular' className={WithdrawButtonsClass} pallete='green'
-        icon={IconChangeBlue} onClick={()=>{
+        <Button
+          variant="regular"
+          className={WithdrawButtonsClass}
+          pallete="green"
+          icon={IconChangeBlue}
+          onClick={() => {
             onChangeResult(true);
             onCancel();
-        }}>
+          }}
+        >
           change
         </Button>
       )}
-      onCancel={()=> {
+      onCancel={() => {
         onChangeResult(false);
         onCancel();
       }}
     >
-    <StyledContent>
-        You voted {voted > 0 ? 'YES' : 'NO'}. Are you sure you want to change your current decision in proposal “{propTitle}”?
-    </StyledContent> 
+      <StyledContent>
+        You voted
+        {' '}
+        {voted > 0 ? 'YES' : 'NO'}
+        . Are you sure you want to change your current decision in proposal “
+        {propTitle}
+        ”?
+      </StyledContent>
     </Popup>
   );
 };

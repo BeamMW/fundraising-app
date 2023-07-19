@@ -4,7 +4,7 @@ import React, {
 import { styled } from '@linaria/react';
 
 import { css } from '@linaria/core';
-//import config from '@app/config';
+// import config from '@app/config';
 import Angle from './Angle';
 
 const ContainerStyled = styled.div`
@@ -21,25 +21,25 @@ const SelectStyled = styled.div`
   margin-top: 8px;
   padding: 13px 0;
   border-radius: 2px;
-  background-color: #00446C;
+  background-color: #00446c;
   max-height: 200px;
   overflow-y: auto;
 
   ::-webkit-scrollbar {
     width: 5px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-   
+
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.7); 
+    background: rgba(255, 255, 255, 0.7);
   }
 `;
 
@@ -83,11 +83,11 @@ const ButtonStyled = styled.button`
   > .title-text {
     font-weight: 400;
     font-size: 14px;
-    color: rgba(255, 255, 255, .7);
+    color: rgba(255, 255, 255, 0.7);
   }
 
   > .title-value {
-    color: rgba(255, 255, 255, .7);
+    color: rgba(255, 255, 255, 0.7);
     margin-left: 10px;
     font-weight: 700;
     font-size: 14px;
@@ -114,10 +114,20 @@ interface OptionProps {
 
 export const Option: React.FC<OptionProps> = ({ active, children, onClick }) => {
   if (active) {
-    return <OptionActiveStyled>#{children}</OptionActiveStyled>;
+    return (
+      <OptionActiveStyled>
+        #
+        {children}
+      </OptionActiveStyled>
+    );
   }
 
-  return <OptionStyled onClick={onClick}>#{children}</OptionStyled>;
+  return (
+    <OptionStyled onClick={onClick}>
+      #
+      {children}
+    </OptionStyled>
+  );
 };
 
 interface SelectProps<T = any> {
@@ -182,8 +192,13 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <ContainerStyled className={className}>
       <ButtonStyled type="button" onMouseDown={handleMouseDown} disabled={disabled}>
-        <span className='title-text'>Epoch</span> 
-        {selected && <span className='title-value'>#{(selected as ReactElement).props.children}</span>}
+        <span className="title-text">Epoch</span>
+        {selected && (
+        <span className="title-value">
+          #
+          {(selected as ReactElement).props.children}
+        </span>
+        )}
         {options.length > 1 && <Angle className={angleStyle} value={opened ? 180 : 0} margin={opened ? 1 : 3} />}
       </ButtonStyled>
       {opened && (

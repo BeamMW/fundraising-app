@@ -11,15 +11,15 @@ const initialState: EpochesStateType = {
     aid: 0,
     current: {
       iEpoch: 0,
-      proposals: 0
+      proposals: 0,
     },
     epoch_dh: 0,
     is_admin: 0,
     next: {
-      proposals: 0
+      proposals: 0,
     },
     total_proposals: 0,
-    pkAdmin: ''
+    pkAdmin: '',
   },
   is_moderator: false,
   public_key: '',
@@ -36,23 +36,23 @@ const initialState: EpochesStateType = {
     future: {
       items: [],
       is_active: false,
-    }
+    },
   },
   contractHeight: 0,
   userView: {
     stake_active: 0,
     stake_passive: 0,
-    voteCounter: 0
+    voteCounter: 0,
   },
   totalsView: {
     stake_active: 0,
-    stake_passive: 0
+    stake_passive: 0,
   },
   rate: 0,
   popupsState: {
     withdraw: false,
     deposit: false,
-    pkey: false
+    pkey: false,
   },
   prevEpoches: [],
   withdrawedAmount: 0,
@@ -60,8 +60,8 @@ const initialState: EpochesStateType = {
   filterEpochSelected: 0,
   localVoteData: {
     state: [],
-    counter: 0
-  }
+    counter: 0,
+  },
 };
 
 const reducer = createReducer<EpochesStateType, Action>(initialState)
@@ -80,7 +80,7 @@ const reducer = createReducer<EpochesStateType, Action>(initialState)
   .handleAction(actions.setPrevProposals, (state, action) => produce(state, (nexState) => {
     if (state.proposals.prev.items.length) {
       let proposals = state.proposals.prev.items;
-      action.payload.map((item) => {
+      action.payload.forEach((item) => {
         const isPrev = state.proposals.prev.items.find((prev) => prev.id === item.id);
         if (!isPrev) {
           proposals = [item, ...proposals];
@@ -104,7 +104,8 @@ const reducer = createReducer<EpochesStateType, Action>(initialState)
     nexState.proposals.prev.items[action.payload.propId].stats = action.payload.stats;
   }))
   .handleAction(actions.setIsPassed, (state, action) => produce(state, (nexState) => {
-    nexState.proposals.prev.items[action.payload.propId]['is_passed'] = action.payload.isPassed;
+    // @ts-ignore
+    nexState.proposals.prev.items[action.payload.propId].is_passed = action.payload.isPassed;
   }))
   .handleAction(actions.setPrevEpoches, (state, action) => produce(state, (nexState) => {
     nexState.prevEpoches = action.payload;
@@ -112,9 +113,7 @@ const reducer = createReducer<EpochesStateType, Action>(initialState)
   .handleAction(actions.loadAppParams.success, (state, action) => produce(state, (nexState) => {
     nexState.appParams = action.payload;
   }))
-  .handleAction(actions.loadPoposals.success, (state, action) => produce(state, (nexState) => {
-    //nexState.appParams = action.payload;
-  }))
+
   .handleAction(actions.loadRate.success, (state, action) => produce(state, (nexState) => {
     nexState.rate = action.payload;
   }))
